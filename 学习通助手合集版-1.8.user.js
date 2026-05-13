@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         学习通助手合集版
 // @namespace    http://tampermonkey.net/
-// @version      1.8
+// @version      1.9
 // @description  题目导出 + 自动答题（选择/判断/简答），弹窗可最小化，支持AI提示词
 // @match        *://*.chaoxing.com/*
 // @match        *://*.xuexi360.com/*
@@ -202,7 +202,7 @@
                     const ansText = m[2].trim();
                     if (idx < 0 || idx >= totalQuestions) return;
                     lastIdx = idx;
-                    if (/^[A-Za-z]{1,4}$/.test(ansText) || /^对$|^错$/.test(ansText)) {
+                    if (/^[A-Za-z]{1,10}$/.test(ansText) || /^对$|^错$/.test(ansText)) {
                         choice.push({ idx, ans: ansText.toUpperCase() });
                     } else {
                         shortAns.push({ idx, text: ansText });
@@ -222,7 +222,7 @@
             tokens.forEach(token => {
                 if (idx >= totalQuestions) return;
                 const ans = token.toUpperCase();
-                if (/^[A-Z]{1,4}$/.test(ans) || /^对$|^错$/.test(ans)) {
+                if (/^[A-Z]{1,10}$/.test(ans) || /^对$|^错$/.test(ans)) {
                     choice.push({ idx, ans });
                 } else {
                     shortAns.push({ idx, text: token });
@@ -412,7 +412,12 @@
             alert('UEditor 未加载，请确保页面已完全打开');
             return;
         }
-        const editorKeys = Object.keys(UE.instants).sort();
+        // 数值排序：防止 ueditorInstant10 排在 ueditorInstant2 前面
+        const editorKeys = Object.keys(UE.instants).sort((a, b) => {
+            const numA = parseInt(a.replace(/[^0-9]/g, '')) || 0;
+            const numB = parseInt(b.replace(/[^0-9]/g, '')) || 0;
+            return numA - numB;
+        });
         if (editorKeys.length === 0) {
             alert('未找到简答题编辑器');
             return;
